@@ -1,6 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:vital_eats_2/home/home.dart';
+import 'package:vital_eats_2/auth/view/auth_page.dart';
 
 class AppView extends StatelessWidget {
   const AppView({super.key});
@@ -30,7 +30,7 @@ class AppView extends StatelessWidget {
         );
       },
       debugShowCheckedModeBanner: false,
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const AuthPage(),
     );
   }
 }
