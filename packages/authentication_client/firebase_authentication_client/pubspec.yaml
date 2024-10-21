@@ -8,8 +8,14 @@ environment:
   flutter: ^3.22.0
 
 dependencies:
+  authentication_client:
+    path: ../authentication_client
+  firebase_auth: ^5.3.1
   flutter:
     sdk: flutter
+  google_sign_in: ^6.2.1
+  token_storage:
+    path: ../token_storage
 
 dev_dependencies:
   flutter_test:

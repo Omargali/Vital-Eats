@@ -1,8 +1,9 @@
-import 'dart:developer';
-
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:form_fields/form_fields.dart';
+import 'package:vital_eats_2/auth/sign_up/sign_up.dart';
+
 class SignUpForm extends StatefulWidget {
   const SignUpForm({super.key});
 
@@ -29,8 +30,11 @@ class _LoginFormState extends State<SignUpForm> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = context.select((SignUpCubit cubit) => cubit.state.status.isLoading);
+
     return ShadForm(
       key: _formKey,
+      enabled: !isLoading,
       child: ConstrainedBox(
         constraints: const BoxConstraints(
           maxWidth: 350,
@@ -115,18 +119,30 @@ class _LoginFormState extends State<SignUpForm> {
             const SizedBox(height: AppSpacing.lg),
             ShadButton(
               width: double.infinity,
-              child: const Text('Sign up'), 
+              enabled: !isLoading,
+              icon: !isLoading
+                  ? const SizedBox.shrink()
+                  : const Padding(
+                      padding: EdgeInsets.only(right: AppSpacing.md),
+                      child: SizedBox.square(
+                        dimension: AppSpacing.lg,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
               onPressed: () {
-                if(!(_formKey.currentState?.saveAndValidate() ?? false)){
+                if (!(_formKey.currentState?.saveAndValidate() ?? false)) {
                   return;
                 }
-                final email = _formKey.currentState?.value['email'];
-                log('Email: $email');
-                final password = _formKey.currentState?.value['password'];
-                log('Password: $password');
-                final username = _formKey.currentState?.value['username'];
-                log('Username: $username');
-              },
+                final email = _formKey.currentState?.value['email'] as String;
+                final password = _formKey.currentState?.value['password'] as String;
+                final username = _formKey.currentState?.value['username'] as String;
+                context.read<SignUpCubit>().onSubmit(
+                  email: email, 
+                  password: password, 
+                  username: username,
+                );
+               },
+              child: Text(isLoading ? 'Please wait' : 'SIGN UP'),
             ),
           ],
         ),

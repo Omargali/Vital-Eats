@@ -1,14 +1,17 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:vital_eats_2/auth/view/auth_page.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vital_eats_2/app/bloc/app_bloc.dart';
+import 'package:vital_eats_2/app/routes/app_router.dart';
 
 class AppView extends StatelessWidget {
   const AppView({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return ShadApp.material(
+    final router = AppRouter().router(context.read<AppBloc>());
+
+    return ShadApp.materialRouter(
       title: 'Vital Eats',
       themeMode: ThemeMode.light,
       theme: const AppTheme().theme,
@@ -30,7 +33,7 @@ class AppView extends StatelessWidget {
         );
       },
       debugShowCheckedModeBanner: false,
-      home: const AuthPage(),
+      routerConfig: router,
     );
   }
 }

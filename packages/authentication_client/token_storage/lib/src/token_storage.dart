@@ -1,7 +1,29 @@
 /// {@template token_storage}
-/// A Very Good Project created by Very Good CLI.
+/// Token storage for the authentication client.
 /// {@endtemplate}
-class TokenStorage {
-  /// {@macro token_storage}
-  const TokenStorage();
+abstract class TokenStorage {
+  /// Returns the current token.
+  Future<String?> readToken();
+
+  /// Saves the current token.
+  Future<void> saveToken(String token);
+
+  /// Clears the current token.
+  Future<void> clearToken();
+}
+
+/// {@template in_memory_token_storage}
+/// In-memory token storage for the authentication client.
+/// {@endtemplate}
+class InMemoryTokenStorage implements TokenStorage {
+  String? _token;
+
+  @override
+  Future<String?> readToken() async => _token;
+
+  @override
+  Future<void> saveToken(String token) async => _token = token;
+
+  @override
+  Future<void> clearToken() async => _token = null;
 }

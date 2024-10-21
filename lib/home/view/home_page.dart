@@ -1,4 +1,7 @@
+import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vital_eats_2/app/bloc/app_bloc.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({required this.title, super.key});
@@ -75,6 +78,10 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            ShadButton.destructive(
+              child: const Text('Logout'),
+              onPressed: () => context.read<AppBloc>().add(const AppLogoutRequested()),
             ),
           ],
         ),
