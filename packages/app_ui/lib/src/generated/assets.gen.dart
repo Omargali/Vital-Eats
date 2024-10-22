@@ -29,6 +29,12 @@ class $AssetsIconsGen {
 class $AssetsImagesGen {
   const $AssetsImagesGen();
 
+  /// File path: assets/images/healthy.jpg
+  AssetGenImage get healthy => const AssetGenImage('assets/images/healthy.jpg');
+
+  /// File path: assets/images/like.png
+  AssetGenImage get like => const AssetGenImage('assets/images/like.png');
+
   /// File path: assets/images/papa-burger-logo.jpg
   AssetGenImage get papaBurgerLogo =>
       const AssetGenImage('assets/images/papa-burger-logo.jpg');
@@ -46,7 +52,7 @@ class $AssetsImagesGen {
 
   /// List of all assets
   List<AssetGenImage> get values =>
-      [papaBurgerLogo, placeholder, profilePhoto, welcome];
+      [healthy, like, papaBurgerLogo, placeholder, profilePhoto, welcome];
 }
 
 class Assets {

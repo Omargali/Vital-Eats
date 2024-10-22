@@ -19,7 +19,10 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         ) {
     on<AppUserChanged>(_onAppUserChanged);
     on<AppLogoutRequested>(_onAppLogoutRequested);
-    
+    on<AppUpdateAccountRequested>(_onUpdateAccountRequested);
+    on<AppDeleteAccountRequested>(_onDeleteAccountRequested);
+    on<AppUpdateAccountEmailRequested>(_onUpdateAccountEmailRequested);
+
     _userSubscription = _userRepository.user.listen(_userChanged, onError: addError);
   }
 
@@ -46,11 +49,44 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     }
   }
 
+  Future<void> _onUpdateAccountRequested(
+    AppUpdateAccountRequested event,
+    Emitter<AppState> emit,
+  ) async {
+    try {
+       await _userRepository.updateProfile(username: event.username);
+    } catch (error, stackTrace) {
+      addError(error, stackTrace);
+    }
+  }
+
+  Future<void> _onUpdateAccountEmailRequested(
+    AppUpdateAccountEmailRequested event,
+    Emitter<AppState> emit,
+  ) async {
+    try {
+      await _userRepository.updateEmail(email: event.email, password: event.password);
+    } catch (error, stackTrace) {
+      addError(error, stackTrace);
+    }}
+
  void _onAppLogoutRequested(
     AppLogoutRequested event,
     Emitter<AppState> emit,
   ) {
     unawaited(_userRepository.logOut());
+  }
+
+ Future<void> _onDeleteAccountRequested(
+    AppDeleteAccountRequested event,
+    Emitter<AppState> emit,
+  ) async {
+    try {
+      await _userRepository.deleteAccount();
+    } catch (error, stackTrace) {
+      await _userRepository.logOut();
+      addError(error, stackTrace);
+    }
   }
 
   @override

@@ -13,6 +13,26 @@ final class AppUserChanged extends AppEvent {
   final User user;
 }
 
+final class AppUpdateAccountRequested extends AppEvent {
+  const AppUpdateAccountRequested({this.username});
+
+  final String? username;
+}
+
 final class AppLogoutRequested extends AppEvent {
   const AppLogoutRequested();
+}
+
+final class AppUpdateAccountEmailRequested extends AppEvent {
+  const AppUpdateAccountEmailRequested({
+    required this.email,
+    required this.password,
+  });
+
+  final String email;
+  final String password;
+}
+
+final class AppDeleteAccountRequested extends AppEvent {
+  const AppDeleteAccountRequested();
 }

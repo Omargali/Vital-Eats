@@ -12,6 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_svg: ^2.0.10+1
+  go_router: ^14.3.0
   shadcn_ui: ^0.13.0
 
 dev_dependencies:

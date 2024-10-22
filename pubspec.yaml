@@ -45,6 +45,8 @@ dependencies:
   go_router: ^14.3.0
   token_storage:
     path: packages/authentication_client/token_storage
+  url_launcher: ^6.3.1
+  urldat: ^1.1.0
   user_repository:
     path: packages/user_repository
 
