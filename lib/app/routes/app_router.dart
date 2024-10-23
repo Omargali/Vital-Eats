@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:vital_eats_2/app/app.dart';
 import 'package:vital_eats_2/auth/view/auth_page.dart';
 import 'package:vital_eats_2/home/view/home_view.dart';
+import 'package:vital_eats_2/map/view/map_page.dart';
+import 'package:vital_eats_2/map/widgets/search_location_autocomplete.dart';
 import 'package:vital_eats_2/profile/view/profile_view.dart';
 import 'package:vital_eats_2/profile/widgets/user_update_email_form.dart';
 import 'package:vital_eats_2/restaurants/view/restaurants_page.dart';
@@ -21,6 +23,18 @@ class AppRouter {
             path: AppRoutes.auth.route,
             name: AppRoutes.auth.name,
             builder: (context, state) => const AuthPage(),
+          ),
+          GoRoute(
+            parentNavigatorKey: _rootNavigatorKey,
+            path: AppRoutes.googleMap.route,
+            name: AppRoutes.googleMap.name,
+            builder: (context, state) => const GoogleMapPage(),
+          ),
+          GoRoute(
+            parentNavigatorKey: _rootNavigatorKey,
+            path: AppRoutes.searchLocation.route,
+            name: AppRoutes.searchLocation.name,
+            builder: (context, state) => const SearchLocationAutoCompletePage(),
           ),
           GoRoute(
               path: AppRoutes.profile.route,
@@ -61,12 +75,14 @@ class AppRouter {
         ],
         redirect: (context, state) {
           final authenticated = appBloc.state.status == AppStatus.authenticated;
+          final hasLocation = !appBloc.state.location.isUnderfined;
           final authenticating = state.matchedLocation == AppRoutes.auth.route;
           final isInRestaurants =
               state.matchedLocation == AppRoutes.restaurants.route;
 
           if (isInRestaurants && !authenticated) return AppRoutes.auth.route;
           if (!authenticated) return AppRoutes.auth.route;
+          if (!hasLocation && authenticating) return AppRoutes.googleMap.route;
           if (authenticating && authenticated) {
             return AppRoutes.restaurants.route;
           }

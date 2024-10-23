@@ -1,0 +1,22 @@
+name: location_repository
+description: A Very Good Project created by Very Good CLI.
+version: 0.1.0+1
+publish_to: none
+
+environment:
+  sdk: ^3.4.0
+
+dev_dependencies:
+  mocktail: ^1.0.4
+  test: ^1.25.2
+  very_good_analysis: ^6.0.0
+dependencies:
+  env:
+    path: ../env
+  build_runner: ^2.4.13
+  dio: ^5.7.0
+  equatable: ^2.0.5
+  geolocator: ^13.0.1
+  json_annotation: ^4.9.0
+  json_serializable: ^6.8.0
+  json_serializer: ^0.2.0

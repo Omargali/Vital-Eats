@@ -3,6 +3,9 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 
+const searchFoodLabel = 'Search food...';
+const searchLocationLabel = 'Search';
+
 enum DrawerOption {
   profile('Profile'),
   orders('Orders');

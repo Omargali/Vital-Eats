@@ -1,18 +1,51 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:authentication_client/authentication_client.dart';
-import 'package:user_repository/src/models/models.dart';
+import 'package:equatable/equatable.dart';
+import 'package:location_repository/location_repository.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:storage/storage.dart';
 import 'package:user_repository/user_repository.dart';
+
+part 'user_storage.dart';
+
+/// {@template user_failure}
+/// A base failure for the user repository failures.
+/// {@endtemplate}
+abstract class UserFailure with EquatableMixin implements Exception {
+  /// {@macro user_failure}
+  const UserFailure(this.error);
+
+  /// The error which was caught.
+  final Object error;
+
+  @override
+  List<Object> get props => [error];
+}
+
+
+/// {@template change_user_location_failure}
+/// Thrown when changing user location fails.
+/// {@endtemplate}
+class ChangeUserLocationFailure extends UserFailure {
+  /// {@macro change_user_location_failure}
+  const ChangeUserLocationFailure(super.error);
+}
+
 /// {@template user_repository}
 /// A repository that handles user-related actions and authentication flows.
 /// {@endtemplate}
 class UserRepository {
   /// {@macro user_repository}
   const UserRepository({
-    required AuthenticationClient authenticationClient,
-  })  : _authenticationClient = authenticationClient;
+    required AuthenticationClient authenticationClient, 
+    required UserStorage storage,
+  })  : _authenticationClient = authenticationClient,
+  _storage = storage;
 
   final AuthenticationClient _authenticationClient;
+  final UserStorage _storage;
 
   /// Stream of [User] which will emit the current user when
   /// the authentication state or the subscription plan changes.
@@ -127,6 +160,29 @@ class UserRepository {
       rethrow;
     } catch (error, stackTrace) {
       Error.throwWithStackTrace(DeleteAccountFailure(error), stackTrace);
+    }
+  }
+
+  /// Broadcasts user location value from User Storage.
+  ///
+  /// * Initial value comes from persisted local storage.
+  Stream<Location> currentLocation() => _storage.userLocation();
+
+  /// Fetches user location value from User Storage.
+  Location fetchCurrentLocation() => _storage.getUserLocation();
+
+  /// Clears user location value in User Storage.
+  Future<void> clearCurrentLocation() => _storage.clearUserLocation();
+
+  /// Changes user location value in User Storage and emits new value
+  /// to [currentLocation] stream.
+  ///
+  /// * New location is persisted in local storage.
+  Future<void> changeLocation({required Location location}) async {
+    try {
+      await _storage.setUserLocation(location: location);
+    } catch (error, stackTrace) {
+      Error.throwWithStackTrace(ChangeUserLocationFailure(error), stackTrace);
     }
   }
 }

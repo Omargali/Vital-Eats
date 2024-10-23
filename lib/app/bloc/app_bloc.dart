@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:location_repository/location_repository.dart';
 import 'package:user_repository/user_repository.dart';
 
 part 'app_event.dart';
@@ -22,15 +23,23 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<AppUpdateAccountRequested>(_onUpdateAccountRequested);
     on<AppDeleteAccountRequested>(_onDeleteAccountRequested);
     on<AppUpdateAccountEmailRequested>(_onUpdateAccountEmailRequested);
+    on<AppUserLocationChanged>(_onUserLocationChanged);
 
     _userSubscription = _userRepository.user.listen(_userChanged, onError: addError);
+    _locationSubscription = userRepository
+        .currentLocation()
+        .listen(_userLocationChanged, onError: addError);
   }
 
   final UserRepository _userRepository;
 
   StreamSubscription<User>? _userSubscription;
+  StreamSubscription<Location>? _locationSubscription;
 
   void _userChanged(User user) => add(AppUserChanged(user));
+
+  void _userLocationChanged(Location location) =>
+      add(AppUserLocationChanged(location));
 
   void _onAppUserChanged(
     AppUserChanged event,
@@ -47,6 +56,14 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         : AppState.authenticated(user),
     );
     }
+  }
+
+   Future<void> _onUserLocationChanged(
+    AppUserLocationChanged event,
+    Emitter<AppState> emit,
+  ) async {
+    if (state.location == event.location) return;
+    emit(state.copyWith(location: event.location));
   }
 
   Future<void> _onUpdateAccountRequested(
@@ -92,6 +109,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   @override
   Future<void> close() {
     _userSubscription?.cancel();
+    _locationSubscription?.cancel();
     return super.close();
   }
 }

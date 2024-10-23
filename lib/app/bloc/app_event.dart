@@ -33,6 +33,15 @@ final class AppUpdateAccountEmailRequested extends AppEvent {
   final String password;
 }
 
+final class AppUserLocationChanged extends AppEvent {
+  const AppUserLocationChanged(this.location);
+
+  final Location location;
+
+  @override
+  List<Object> get props => [location];
+}
+
 final class AppDeleteAccountRequested extends AppEvent {
   const AppDeleteAccountRequested();
 }

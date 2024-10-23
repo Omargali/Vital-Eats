@@ -43,6 +43,14 @@ dependencies:
   form_fields:
     path: packages/form_fields
   go_router: ^14.3.0
+  google_maps_flutter: ^2.9.0
+  location_repository:
+    path: packages/location_repository
+  persistent_storage:
+    path: packages/storage/persistent_storage
+  shared:
+    path: packages/shared
+  shared_preferences: ^2.3.2
   token_storage:
     path: packages/authentication_client/token_storage
   url_launcher: ^6.3.1

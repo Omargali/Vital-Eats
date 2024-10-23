@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:user_repository/user_repository.dart';
 import 'package:vital_eats_2/app/bloc/app_bloc.dart';
 import 'package:vital_eats_2/profile/widgets/user_credentials_form.dart';
 
@@ -62,6 +63,7 @@ class ProfileView extends StatelessWidget {
                     onTap: () => context.confirmAction(
                       fn: () {
                         context.read<AppBloc>().add(const AppLogoutRequested());
+                        context.read<UserRepository>().clearCurrentLocation();
                       },
                       title: 'Logout',
                       content: 'Are you sure to logout from your account?',
