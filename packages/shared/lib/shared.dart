@@ -2,4 +2,4 @@
 library;
 
 export 'src/config/config.dart';
-export 'src/shared.dart';
+export 'src/models/models.dart';

@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:api/client.dart';
 import 'package:authentication_client/authentication_client.dart';
 import 'package:equatable/equatable.dart';
-import 'package:location_repository/location_repository.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:storage/storage.dart';
 import 'package:user_repository/user_repository.dart';

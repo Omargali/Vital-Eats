@@ -7,11 +7,11 @@ environment:
   sdk: ^3.4.0
 
 dependencies:
+  api:
+    path: ../../api
   authentication_client:
     path: ../authentication_client/authentication_client
   equatable: ^2.0.5
-  location_repository:
-    path: ../location_repository
   rxdart: ^0.28.0
   storage:
     path: ../storage/storage

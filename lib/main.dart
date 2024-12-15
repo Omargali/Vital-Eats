@@ -1,6 +1,8 @@
+import 'package:api/client.dart';
 import 'package:firebase_authentication_client/firebase_authentication_client.dart';
 import 'package:location_repository/location_repository.dart';
 import 'package:persistent_storage/persistent_storage.dart';
+import 'package:restaurants_repository/restaurants_repository.dart';
 import 'package:token_storage/token_storage.dart';
 import 'package:user_repository/user_repository.dart';
 import 'package:vital_eats_2/app/app.dart';
@@ -12,6 +14,9 @@ void main() async {
      final firebaseAuthenticationClient = FirebaseAuthenticationClient(
       tokenStorage: tokenStorage,
      );
+      final appDio = AppDio();
+       
+      final apiClient = YandexEatsClient.localhost(dio: appDio);
      
      final persistentStorage = PersistentStorage(sharedPreferences: sharedPreferences);
      final userStorage = UserStorage(storage: persistentStorage);
@@ -20,12 +25,15 @@ void main() async {
       storage: userStorage,
      );
 
-     final locationRepository = LocationRepository(httpClient: Dio());
+     final locationRepository = LocationRepository(httpClient: appDio.httpClient);
+
+     final restaurantsRepository = RestaurantsRepository(apiClient: apiClient);
 
      return App(
       user: await userRepository.user.first,
       userRepository: userRepository,
       locationRepository: locationRepository,
+      restaurantsRepository: restaurantsRepository,
       );
   }
   );

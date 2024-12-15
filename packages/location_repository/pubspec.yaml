@@ -11,6 +11,8 @@ dev_dependencies:
   test: ^1.25.2
   very_good_analysis: ^6.0.0
 dependencies:
+  api:
+    path: ../../api
   env:
     path: ../env
   build_runner: ^2.4.13

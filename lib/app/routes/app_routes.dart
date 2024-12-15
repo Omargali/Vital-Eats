@@ -6,6 +6,7 @@ enum AppRoutes {
   googleMap('/googleMap'),
   updateEmail('/update-email'),
   search('/search'),
+  menu('/menu'),
   searchLocation('/searchLocation'),
   
   cart('/cart');

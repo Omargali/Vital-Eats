@@ -1,4 +1,4 @@
-import 'package:location_repository/location_repository.dart';
+import 'package:api/api.dart';
 
 class PlaceDetails {
   const PlaceDetails({

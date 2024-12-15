@@ -29,11 +29,14 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   animations: ^2.0.11
+  api:
+    path: api
   app_ui:
     path: packages/app_ui
   bloc: ^8.1.4
   cupertino_icons: ^1.0.8
   equatable: ^2.0.5
+  fast_immutable_collections: ^11.0.0
   firebase_authentication_client:
     path: packages/authentication_client/firebase_authentication_client
   firebase_core: ^3.6.0
@@ -48,6 +51,8 @@ dependencies:
     path: packages/location_repository
   persistent_storage:
     path: packages/storage/persistent_storage
+  restaurants_repository:
+    path: packages/restaurants_repository
   shared:
     path: packages/shared
   shared_preferences: ^2.3.2
