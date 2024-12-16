@@ -7,9 +7,11 @@ import 'package:vital_eats_2/auth/view/auth_page.dart';
 import 'package:vital_eats_2/home/view/home_view.dart';
 import 'package:vital_eats_2/map/view/map_page.dart';
 import 'package:vital_eats_2/map/widgets/search_location_autocomplete.dart';
+import 'package:vital_eats_2/menu/menu.dart';
 import 'package:vital_eats_2/profile/view/profile_view.dart';
 import 'package:vital_eats_2/profile/widgets/user_update_email_form.dart';
 import 'package:vital_eats_2/restaurants/view/restaurants_page.dart';
+import 'package:vital_eats_2/search/view/search_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -37,16 +39,22 @@ class AppRouter {
             builder: (context, state) => const SearchLocationAutoCompletePage(),
           ),
           GoRoute(
-              path: AppRoutes.profile.route,
-              name: AppRoutes.profile.name,
-              builder: (context, state) => const ProfileView(),
-              routes: [
-                GoRoute(
-                  path: AppRoutes.updateEmail.name,
-                  name: AppRoutes.updateEmail.name,
-                  builder: (context, state) => const UserUpdateEmailForm(),
-                ),
-              ],),
+            path: AppRoutes.profile.route,
+            name: AppRoutes.profile.name,
+            builder: (context, state) => const ProfileView(),
+            routes: [
+              GoRoute(
+                path: AppRoutes.updateEmail.name,
+                name: AppRoutes.updateEmail.name,
+                builder: (context, state) => const UserUpdateEmailForm(),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: AppRoutes.search.route,
+            name: AppRoutes.search.name,
+            builder: (context, state) => const SearchPage(),
+          ),
           StatefulShellRoute.indexedStack(
             parentNavigatorKey: _rootNavigatorKey,
             builder: (context, state, navigationShell) {
@@ -59,6 +67,17 @@ class AppRouter {
                     path: AppRoutes.restaurants.route,
                     name: AppRoutes.restaurants.name,
                     builder: (context, state) => const RestaurantsPage(),
+                    routes: [
+                      GoRoute(
+                        path: AppRoutes.menu.name,
+                        name: AppRoutes.menu.name,
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) {
+                          final props = state.extra! as MenuProps;
+                          return MenuPage(props: props);
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),

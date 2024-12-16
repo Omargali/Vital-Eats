@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 
 final _formatter = NumberFormat();
 NumberFormat _currency([int? decimalDigits = 2]) => NumberFormat.currency(
-      symbol: r'$',
+      symbol: r'₸',
       decimalDigits: decimalDigits,
       locale: 'en_US',
     );

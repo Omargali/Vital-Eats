@@ -12,6 +12,7 @@ dependencies:
   dio: ^5.7.0
   dotenv: ^4.2.0
   equatable: ^2.0.5
+  intl: ^0.20.1
   json_annotation: ^4.9.0
   json_serializable: ^6.8.0
   stormberry: ^0.14.0

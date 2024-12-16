@@ -79,6 +79,126 @@ class YandexEatsClient {
         .map((e) => Restaurant.fromJson(e as Map<String, dynamic>))
         .toList();
     }
+   
+    Future<List<Restaurant>> getRestaurantsByTags({
+    required List<String> tags,
+    required Location location,
+  }) async {
+    final uri = _urlBuilder.getRestaurantsByTags(
+      latitude: location.lat.toString(),
+      longitude: location.lng.toString(),
+    );
+
+    final response = await _dio.httpClient.getUri<Map<String, dynamic>>(
+      uri,
+      data: {'tags': tags},
+    );
+    final data = response.json();
+    if (!response.isOk) {
+      throw YandexEatsApiRequestFailure(
+        body: data,
+        statusCode: response.statusCode,
+      );
+    }
+
+    final restaurants = data['restaurants'] as List;
+    return restaurants
+        .map((e) => Restaurant.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+    
+  Future<List<Restaurant>> relevantSearch({
+    required String term,
+    required Location location,
+  }) async {
+    if (term.isEmpty) return [];
+    final uri = _urlBuilder.relevantRestaurants(
+      term: term.replaceAllSpacesToLowerCase(),
+      latitude: location.lat.toString(),
+      longitude: location.lng.toString(),
+    );
+
+    final response = await _dio.httpClient.getUri<Map<String, dynamic>>(
+      uri,
+    );
+    final data = response.json();
+    if (!response.isOk) {
+      throw YandexEatsApiRequestFailure(
+        body: data,
+        statusCode: response.statusCode,
+      );
+    }
+
+    final restaurants = data['restaurants'] as List;
+    return restaurants
+        .map((e) => Restaurant.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<Restaurant>> popularSearch({
+    required Location location,
+  }) async {
+    final uri = _urlBuilder.popularRestaurants(
+      latitude: location.lat.toString(),
+      longitude: location.lng.toString(),
+    );
+
+    final response = await _dio.httpClient.getUri<Map<String, dynamic>>(
+      uri,
+    );
+    final data = response.json();
+    if (!response.isOk) {
+      throw YandexEatsApiRequestFailure(
+        body: data,
+        statusCode: response.statusCode,
+      );
+    }
+
+    final restaurants = data['restaurants'] as List;
+    return restaurants
+        .map((e) => Restaurant.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+    Future<List<Tag>> getTags({required Location location}) async {
+    final uri = _urlBuilder.getTags(
+      latitude: location.lat.toString(),
+      longitude: location.lng.toString(),
+    );
+
+    final response = await _dio.httpClient.getUri<Map<String, dynamic>>(
+      uri,
+    );
+    final data = response.json();
+    if (!response.isOk) {
+      throw YandexEatsApiRequestFailure(
+        body: data,
+        statusCode: response.statusCode,
+      );
+    }
+    final tags = data['tags'] as List;
+    return tags.map((e) => Tag.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<List<Menu>> getMenu(String placeId) async {
+    final uri = _urlBuilder.getMenu(placeId);
+
+    final response = await _dio.httpClient.getUri<Map<String, dynamic>>(
+      uri,
+    );
+    final data = response.json();
+    if (!response.isOk) {
+      throw YandexEatsApiRequestFailure(
+        body: data,
+        statusCode: response.statusCode,
+      );
+    }
+    final menu = data['menus'] as List<dynamic>;
+    return menu
+        .map((dynamic e) => Menu.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
 }
  
 extension on Response<Map<String, dynamic>> {

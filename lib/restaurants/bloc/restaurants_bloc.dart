@@ -23,6 +23,11 @@ class RestaurantsBloc extends Bloc<RestaurantsEvent, RestaurantsState>
     on<RestaurantsFetchRequested>(_onFetchRequested);
     on<RestaurantsLocationChanged>(_onRestaurantsLocationChanged);
     on<RestaurantsRefreshRequested>(_onRefreshRequested);
+    on<RestaurantsFilterTagChanged>(_onFilterTagChanged);
+    on<_RestaurantsFilterTadAdded>(_onFilterTagAdded);
+    on<_RestaurantsFilterTagRemoved>(_onFilterTagRemoved);
+    on<RestaurantsFilterTagsClearRequested>(_onFilterTagsClear);
+    on<RestaurantsFilterTagsChanged>(_onFilterTagsChanged);
 
     _locationSubscription = _userRepository
         .currentLocation()
@@ -48,8 +53,14 @@ class RestaurantsBloc extends Bloc<RestaurantsEvent, RestaurantsState>
     if (state.location == location) return;
     if (location.isUnderfined) return;
 
-    emit(state.copyWith(location: location));
-    add(const RestaurantsFetchRequested());
+    emit(
+      state.copyWith(
+        location: location,
+        filteredRestaurants: [],
+        chosenTags: [],
+      ),
+    );
+    add(const RestaurantsRefreshRequested());
   }
 
   Future<void> _onFetchRequested(
@@ -66,15 +77,19 @@ class RestaurantsBloc extends Bloc<RestaurantsEvent, RestaurantsState>
       final (:newPage, :hasMore, :restaurants) = await fetchRestaurantsPage(
         page: currentPage,
       );
+      final tags = currentPage == 0
+          ? await _restaurantsRepository.getTags(location: state.location)
+          : null;
       final filteredRestaurants = _fillterRestaurants(restaurants);
       emit(
         state.copyWith(
+          tags: tags,
           status: RestaurantsStatus.populated,
           restaurantsPage: state.restaurantsPage.copyWith(
             restaurants: [
-              ...state.restaurantsPage.restaurants, 
-              ...filteredRestaurants
-              ],
+              ...state.restaurantsPage.restaurants,
+              ...filteredRestaurants,
+            ],
             hasMore: hasMore,
             page: newPage,
             totalRestaurants:
@@ -87,18 +102,21 @@ class RestaurantsBloc extends Bloc<RestaurantsEvent, RestaurantsState>
       addError(error, stackTrace);
     }
   }
-  
+
   Future<void> _onRefreshRequested(
-     RestaurantsRefreshRequested event,
-     Emitter<RestaurantsState> emit,
+    RestaurantsRefreshRequested event,
+    Emitter<RestaurantsState> emit,
   ) async {
     emit(state.copyWith(status: RestaurantsStatus.loading));
-     try {
+    try {
       final (:newPage, :hasMore, :restaurants) = await fetchRestaurantsPage();
+      final tags =
+          await _restaurantsRepository.getTags(location: state.location);
       final filteredRestaurants = _fillterRestaurants(restaurants);
       emit(
         state.copyWith(
-           status: RestaurantsStatus.populated,
+          status: RestaurantsStatus.populated,
+          tags: tags,
           restaurantsPage: RestaurantsPage(
             page: newPage,
             restaurants: filteredRestaurants,
@@ -113,10 +131,97 @@ class RestaurantsBloc extends Bloc<RestaurantsEvent, RestaurantsState>
     }
   }
 
+  Future<void> _onFilterTagsClear(
+    RestaurantsFilterTagsClearRequested event,
+    Emitter<RestaurantsState> emit,
+  ) async {
+    emit(state.copyWith(status: RestaurantsStatus.loading));
+    await Future<void>.delayed(const Duration(seconds: 1)).whenComplete(
+      () => emit(
+        state.copyWith(
+          filteredRestaurants: [],
+          chosenTags: [],
+          status: RestaurantsStatus.populated,
+        ),
+      ),
+    );
+  }
+
+   void _onFilterTagChanged(
+    RestaurantsFilterTagChanged event,
+    Emitter<RestaurantsState> emit,
+  ) {
+    final tag = event.tag;
+    !state.chosenTags.contains(tag)
+        ? add(_RestaurantsFilterTadAdded(tag))
+        : add(_RestaurantsFilterTagRemoved(tag));
+  }
+
+  Future<void> _onFilterTagsChanged(
+    RestaurantsFilterTagsChanged event,
+    Emitter<RestaurantsState> emit,
+  ) async {
+    final tags = event.tags ?? state.chosenTags;
+    emit(
+      state.copyWith(
+        status: RestaurantsStatus.loading,
+        chosenTags: tags,
+      ),
+    );
+
+    if (tags.isEmpty) {
+      return add(const RestaurantsFilterTagsClearRequested());
+    }
+
+    try {
+      final restaurants = await _restaurantsRepository.getRestaurantsByTags(
+        tags: tags.map((e) => e.name).toList(),
+        location: state.location,
+      );
+      final filteredRestaurants = _fillterRestaurants(restaurants);
+      emit(
+        state.copyWith(
+          filteredRestaurants: filteredRestaurants,
+          status: RestaurantsStatus.filtered,
+        ),
+      );
+    } catch (error, stackTrace) {
+      emit(state.copyWith(status: RestaurantsStatus.failure));
+      addError(error, stackTrace);
+    }
+  }
+
+  void _onFilterTagAdded(
+    _RestaurantsFilterTadAdded event,
+    Emitter<RestaurantsState> emit,
+  ) {
+    final tag = event.tag;
+    emit(
+      state.copyWith(
+        status: RestaurantsStatus.loading,
+        chosenTags: [...state.chosenTags, tag],
+      ),
+    );
+    add(const RestaurantsFilterTagsChanged());
+  }
+
+  void _onFilterTagRemoved(
+    _RestaurantsFilterTagRemoved event,
+    Emitter<RestaurantsState> emit,
+  ) {
+    final tag = event.tag;
+    emit(
+      state.copyWith(
+        chosenTags: [...state.chosenTags]..remove(tag),
+      ),
+    );
+    add(const RestaurantsFilterTagsChanged());
+  }
+
   List<Restaurant> _fillterRestaurants(List<Restaurant> restaurants) {
     return restaurants
       ..whereMoveToTheFront((restaurant) {
-        if(restaurant.rating == null) return false;
+        if (restaurant.rating == null) return false;
         final rating = restaurant.rating as double;
         return rating >= 4.8 || restaurant.userRatingsTotal >= 300;
       })

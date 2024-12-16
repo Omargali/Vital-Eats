@@ -18,7 +18,10 @@ void main() async {
        
       final apiClient = YandexEatsClient.localhost(dio: appDio);
      
-     final persistentStorage = PersistentStorage(sharedPreferences: sharedPreferences);
+     final persistentStorage
+      = PersistentStorage(sharedPreferences: sharedPreferences);
+     final persistentListStorage = 
+        PersistentListStorage(sharedPreferences: sharedPreferences);
      final userStorage = UserStorage(storage: persistentStorage);
      final userRepository = UserRepository(
       authenticationClient: firebaseAuthenticationClient,
@@ -26,8 +29,10 @@ void main() async {
      );
 
      final locationRepository = LocationRepository(httpClient: appDio.httpClient);
+    
 
-     final restaurantsRepository = RestaurantsRepository(apiClient: apiClient);
+     final restaurantsStorage = RestaurantsStorage(storage: persistentListStorage);
+     final restaurantsRepository = RestaurantsRepository(apiClient: apiClient, storage: restaurantsStorage);
 
      return App(
       user: await userRepository.user.first,

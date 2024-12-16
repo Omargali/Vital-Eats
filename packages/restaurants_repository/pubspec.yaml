@@ -9,6 +9,9 @@ environment:
 dependencies:
   api:
     path: ../../api
+  rxdart: ^0.28.0
+  storage:
+    path: ../storage/storage
 
 dev_dependencies:
   mocktail: ^1.0.4

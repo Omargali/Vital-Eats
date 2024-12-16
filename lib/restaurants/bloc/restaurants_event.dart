@@ -28,3 +28,31 @@ final class RestaurantsLocationChanged extends RestaurantsEvent {
 final class RestaurantsRefreshRequested extends RestaurantsEvent {
   const RestaurantsRefreshRequested();
 }
+
+final class RestaurantsFilterTagChanged extends RestaurantsEvent {
+  const RestaurantsFilterTagChanged(this.tag);
+
+  final Tag tag;
+}
+
+final class RestaurantsFilterTagsChanged extends RestaurantsEvent {
+  const RestaurantsFilterTagsChanged({this.tags});
+
+  final List<Tag>? tags;
+}
+
+final class _RestaurantsFilterTadAdded extends RestaurantsEvent {
+  const _RestaurantsFilterTadAdded(this.tag);
+
+  final Tag tag;
+}
+
+final class _RestaurantsFilterTagRemoved extends RestaurantsEvent {
+  const _RestaurantsFilterTagRemoved(this.tag);
+
+  final Tag tag;
+}
+
+class RestaurantsFilterTagsClearRequested extends RestaurantsEvent {
+  const RestaurantsFilterTagsClearRequested();
+}

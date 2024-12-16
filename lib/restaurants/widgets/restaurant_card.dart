@@ -5,8 +5,11 @@ import 'dart:math';
 import 'package:api/api.dart';
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:restaurants_repository/restaurants_repository.dart';
 import 'package:vital_eats_2/app/routes/app_routes.dart';
+import 'package:vital_eats_2/menu/menu.dart';
 
 class RestaurantCard extends StatelessWidget {
   const RestaurantCard({required this.restaurant, super.key});
@@ -22,14 +25,17 @@ class RestaurantCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: Tappable.faded(
         onTap: () => context.pushNamed(
-          AppRoutes.menu.name,
-          ),
+          AppRoutes.menu.name, 
+          extra: MenuProps(restaurant: restaurant),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Stack(
               children: [
                 RestaurantImage(restaurant: restaurant),
+                RestaurantDeliveryInfo(restaurant: restaurant),
+                BookmarkButton(restaurant: restaurant),
               ],
             ),
             Hero(
@@ -64,16 +70,110 @@ class RestaurantCard extends StatelessWidget {
                             ),
                     ),
                   ),
-                  RestaurantPriceLevel(priceLevel: restaurant.priceLevel),
-                  const SizedBox(width: AppSpacing.xs),
-                  Expanded(
-                    child: Text(restaurant.formattedTags),
-                  ),
+                RestaurantPriceLevel(priceLevel: restaurant.priceLevel),
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: Text(restaurant.formattedTags),
+                ),
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class RestaurantDeliveryInfo extends StatelessWidget {
+  const RestaurantDeliveryInfo({
+    required this.restaurant,
+    super.key,
+  });
+
+  final Restaurant restaurant;
+
+  @override
+  Widget build(BuildContext context) {
+    final deliverByWalk = restaurant.deliveryTime < 8;
+
+    return Positioned(
+      bottom: 0,
+      right: 0,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+        ),
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(AppSpacing.md + AppSpacing.sm),
+            bottomLeft: Radius.circular(AppSpacing.md + AppSpacing.sm),
+            bottomRight: Radius.circular(AppSpacing.md + AppSpacing.sm),
+          ),
+          color: AppColors.black.withOpacity(.8),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              deliverByWalk ? Icons.directions_walk : Icons.directions_car,
+              color: AppColors.white,
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Text(
+              restaurant.formattedDeliveryTime(),
+              style: context.headlineSmall?.copyWith(
+                fontWeight: AppFontWeight.regular,
+                color: AppColors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class BookmarkButton extends StatelessWidget {
+  const BookmarkButton({
+    required this.restaurant,
+    super.key,
+  });
+
+  final Restaurant restaurant;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+      stream: context.read<RestaurantsRepository>().bookmarkedRestaurants(),
+      builder: (context, snapshot) {
+        final bookmarkedRestaurants = snapshot.data;
+        final isBookmarked = 
+            bookmarkedRestaurants?.contains(restaurant.placeId) ?? false;
+        return Positioned(
+          top: AppSpacing.sm,
+          right: AppSpacing.sm,
+          child: Tappable.scaled(
+            onTap: () => context
+                .read<RestaurantsRepository>()
+                .bookmarkRestaurant(placeId: restaurant.placeId),
+            throttle: true,
+            throttleDuration: 350.ms,
+            child: Container(
+              height: 35,
+              width: 35,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppColors.black.withOpacity(.8),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                color: AppColors.white,
+                size: AppSpacing.xlg,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -160,7 +260,8 @@ class RestaurantPriceLevel extends StatelessWidget {
             : AppColors.grey,
       );
     }
-     return Text.rich(
+
+    return Text.rich(
       TextSpan(
         children: [
           TextSpan(text: currency, style: effectiveStyle(1)),

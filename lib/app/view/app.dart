@@ -4,6 +4,7 @@ import 'package:location_repository/location_repository.dart';
 import 'package:restaurants_repository/restaurants_repository.dart';
 import 'package:user_repository/user_repository.dart';
 import 'package:vital_eats_2/app/app.dart';
+import 'package:vital_eats_2/map/bloc/location_bloc.dart';
 import 'package:vital_eats_2/restaurants/restaurants.dart';
 
 class App extends StatelessWidget {
@@ -41,6 +42,9 @@ class App extends StatelessWidget {
               restaurantsRepository: restaurantsRepository,
               userRepository: userRepository,
             ),
+          ),
+          BlocProvider(
+            create: (_) => LocationBloc(userRepository: userRepository),
           ),
         ],
         child: const AppView(),

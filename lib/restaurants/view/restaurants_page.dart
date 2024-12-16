@@ -2,6 +2,7 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vital_eats_2/restaurants/restaurants.dart';
+import 'package:vital_eats_2/restaurants/tags/view/tags_slider.dart';
 
 final _bucket = PageStorageBucket();
 
@@ -25,8 +26,8 @@ class RestaurantsView extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () async {
         context
-        .read<RestaurantsBloc>()
-        .add(const RestaurantsRefreshRequested());
+            .read<RestaurantsBloc>()
+            .add(const RestaurantsRefreshRequested());
       },
       triggerMode: RefreshIndicatorTriggerMode.anywhere,
       displacement: 30,
@@ -37,12 +38,14 @@ class RestaurantsView extends StatelessWidget {
         builder: (context, state) {
           final isLoading = state.status.isLoading;
           final isFailure = state.status.isFailure;
+          final isFiltered = state.status.isFiltered;
           final restaurants = state.restaurantsPage.restaurants;
           final currentPage = state.restaurantsPage.page;
 
           return CustomScrollView(
             key: const PageStorageKey<String>('restaurantsPage'),
             slivers: [
+              const RestaurantsAppBar(),
               if (isLoading) const RestaurantsLoadingView(),
               if (currentPage == 0 && isFailure)
                 RestaurantsErrorView(
@@ -51,10 +54,25 @@ class RestaurantsView extends StatelessWidget {
                       .add(const RestaurantsFetchRequested()),
                 ),
               if (!isLoading && !isFailure) ...[
-                if (restaurants.isEmpty)
-                  const RestaurantsEmptyView()
-                else ...[
-                  const RestaurantsListView(),
+                if (!isFiltered) ...[
+                  if (restaurants.isEmpty)
+                    const RestaurantsEmptyView()
+                  else ...[
+                    const RestaurantsSectionHeader(text: 'All restaurants'),
+                    const TagsSlider(),
+                    const RestaurantsListView(),
+                  ],
+                ] else ...[
+                  const TagsSlider(),
+                  const SliverToBoxAdapter(
+                    child: Divider(
+                      height: 1,
+                      indent: AppSpacing.md,
+                      endIndent: AppSpacing.md,
+                    ),
+                  ),
+                  const FilteredRestaurantsFoundCount(),
+                  const FilteredRestaurantsListView(),
                 ],
               ],
             ],

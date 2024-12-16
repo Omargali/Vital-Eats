@@ -189,16 +189,26 @@ class Tag extends Equatable {
   Map<String, dynamic> toJson() => _$TagToJson(this);
 
   static String getImageUrl(String name) => switch (name) {
-        'Fast Food' =>
-          'https://img.freepik.com/premium-vector/fast-food-tasty-set-fast-food-isolated-white_67394-543.jpg',
-        'Burgers' =>
-          'https://img.freepik.com/premium-vector/hand-drawn-big-burger-illustration_266639-146.jpg',
-        'Pizza' =>
-          'https://media.istockphoto.com/id/843213562/vector/cartoon-with-contour-of-pizza-slice-with-melted-cheese-and-pepperoni.jpg?s=612x612&w=0&k=20&c=St6rIJz83w2MjwSPj4EvHA8a4x_z9Rgmsd5TYkvSGH8=',
-        'Coffee' =>
-          'https://images.all-free-download.com/images/graphiclarge/cup_of_coffee_311479.jpg',
-        'Hot Dogs' =>
-          'https://static.vecteezy.com/system/resources/thumbnails/003/345/891/small_2x/delicious-hot-dog-fast-food-icon-free-vector.jpg',
+        'Vegan' =>
+          'https://cdn-icons-png.flaticon.com/128/5581/5581173.png',
+        'Fresh Ingredients' =>
+          'https://cdn-icons-png.flaticon.com/128/9862/9862064.png',
+        'Sustainable' =>
+          'https://cdn-icons-png.flaticon.com/128/8973/8973764.png',
+        'Keto-Friendly' =>
+          'https://cdn-icons-png.flaticon.com/128/10008/10008886.png',
+        'Gluten-Free' =>
+          'https://cdn-icons-png.flaticon.com/128/4891/4891616.png',
+        'Organic' =>
+          'https://cdn-icons-png.flaticon.com/128/8044/8044418.png',
+        'Vegetarian' =>
+          'https://cdn-icons-png.flaticon.com/128/3778/3778979.png',
+        'Local Ingredients' =>
+          'https://cdn-icons-png.flaticon.com/512/601/601939.png',
+        'Paleo-Friendly' =>
+          'https://cdn-icons-png.flaticon.com/512/15412/15412916.png',
+        'Low-Calorie' =>
+          'https://cdn-icons-png.flaticon.com/512/8357/8357331.png',
         _ => '',
       };
 }

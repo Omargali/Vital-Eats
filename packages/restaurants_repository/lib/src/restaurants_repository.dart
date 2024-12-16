@@ -1,4 +1,10 @@
+import 'dart:async';
+
 import 'package:api/client.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:storage/storage.dart';
+
+part 'restaurants_storage.dart';
 
 /// {@template restaurants_exception}
 /// Exceptions from restaurants repository.
@@ -22,6 +28,54 @@ class GetRestaurantsByLocationFailure extends RestaurantsException {
   const GetRestaurantsByLocationFailure(super.error);
 }
 
+/// {@template get_restaurants_tags_failure}
+/// Thrown when fetching restaurants tags fails.
+/// {@endtemplate}
+class GetTagsFailure extends RestaurantsException {
+  /// {@macro get_restaurants_tags_failure}
+  const GetTagsFailure(super.error);
+}
+
+/// {@template get_menu_failure}
+/// Thrown when fetching menu fails.
+/// {@endtemplate}
+class GetMenuFailure extends RestaurantsException {
+  /// {@macro get_menu_failure}
+  const GetMenuFailure(super.error);
+}
+
+/// {@template get_restaurants_by_tags_failure}
+/// Thrown when fetching restaurants by tags fails.
+/// {@endtemplate}
+class GetRestaurantsByTagsFailure extends RestaurantsException {
+  /// {@macro get_restaurants_by_tags_failure}
+  const GetRestaurantsByTagsFailure(super.error);
+}
+
+/// {@template popular_search_failure}
+/// Thrown when fetching popular restaurants fails.
+/// {@endtemplate}
+class PopularSearchFailure extends RestaurantsException {
+  /// {@macro popular_search_failure}
+  const PopularSearchFailure(super.error);
+}
+
+/// {@template relevant_search_failure}
+/// Thrown when fetching relevant restaurants fails.
+/// {@endtemplate}
+class RelevantSearchFailure extends RestaurantsException {
+  /// {@macro relevant_search_failure}
+  const RelevantSearchFailure(super.error);
+}
+
+/// {@template bookmark_restaurant_failure}
+/// Thrown when bookmarking restaurant fails.
+/// {@endtemplate}
+class BookmarkRestaurantFailure extends RestaurantsException {
+  /// {@macro bookmark_restaurant_failure}
+  const BookmarkRestaurantFailure(super.error);
+}
+
 /// {@template restaurants_repository}
 /// A Very Good Project created by Very Good CLI.
 /// {@endtemplate}
@@ -29,9 +83,12 @@ class RestaurantsRepository {
   /// {@macro restaurants_repository}
   const RestaurantsRepository({
     required YandexEatsClient apiClient,
-  }) : _apiClient = apiClient;
+    required RestaurantsStorage storage,
+  }) : _apiClient = apiClient, 
+       _storage = storage;
 
   final YandexEatsClient _apiClient;
+  final RestaurantsStorage _storage;
 
    Future<List<Restaurant>> getRestaurants({
     required Location location,
@@ -49,6 +106,97 @@ class RestaurantsRepository {
         GetRestaurantsByLocationFailure(error),
         stackTrace,
       );
+    }
+  }
+
+  Future<List<Restaurant>> getRestaurantsByTags({
+    required List<String> tags,
+    required Location location,
+  }) async {
+    try {
+      return _apiClient.getRestaurantsByTags(
+        tags: tags,
+        location: location,
+      );
+    } catch (error, stackTrace) {
+      Error.throwWithStackTrace(GetRestaurantsByTagsFailure(error), stackTrace);
+    }
+  }
+
+  Future<List<Tag>> getTags({
+    required Location location,
+  }) async {
+    try {
+      return _apiClient.getTags(location: location);
+    } catch (error, stackTrace) {
+      Error.throwWithStackTrace(GetTagsFailure(error), stackTrace);
+    }
+  }
+
+  Future<List<Restaurant>> popularSearch({
+    required Location location,
+  }) async {
+    try {
+      return _apiClient.popularSearch(
+        location: location,
+      );
+    } catch (error, stackTrace) {
+      Error.throwWithStackTrace(
+        PopularSearchFailure(error),
+        stackTrace,
+      );
+    }
+  }
+
+  Future<List<Restaurant>> relevantSearch({
+    required String term,
+    required Location location,
+  }) async {
+    try {
+      return _apiClient.relevantSearch(
+        term: term,
+        location: location,
+      );
+    } catch (error, stackTrace) {
+      Error.throwWithStackTrace(
+        RelevantSearchFailure(error),
+        stackTrace,
+      );
+    }
+  }
+
+  Future<List<Menu>> getMenu({required String placeId}) async {
+    try {
+      return await _apiClient.getMenu(placeId);
+    } catch (error, stackTrace) {
+      Error.throwWithStackTrace(GetMenuFailure(error), stackTrace);
+    }
+  }
+
+ 
+  /// Broadcasts bookmarked restaurants value from User Storage.
+  ///
+  /// * Initial value comes from persisted local storage.
+  Stream<List<String>> bookmarkedRestaurants() =>
+      _storage.bookmarkedRestaurants();
+
+  /// Fetches bookmarked restaurants value from local storage.
+  List<String> getBookmarkedRestaurants() =>
+      _storage.getBookmarkedRestaurants();
+
+  /// Clears bookmarked restaurants value in local storage.
+  Future<void> clearBookmarkedRestaurants() =>
+      _storage.clearBookmarkedRestaurants();
+
+  /// Changes bookmarked restaurants in local storage and emits new value
+  /// to [bookmarkedRestaurants] stream.
+  ///
+  /// * New bookmarked restaurant is persisted in local storage.
+  Future<void> bookmarkRestaurant({required String placeId}) async {
+    try {
+      await _storage.setRestaurantsBookmarked(placeId: placeId);
+    } catch (error, stackTrace) {
+      Error.throwWithStackTrace(BookmarkRestaurantFailure(error), stackTrace);
     }
   }
 }
