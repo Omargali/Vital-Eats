@@ -2,6 +2,8 @@ import 'package:api/api.dart';
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vital_eats_2/cart/bloc/cart_bloc.dart';
 import 'package:vital_eats_2/menu/menu.dart';
 
 class MenuItemCard extends StatelessWidget {
@@ -16,6 +18,31 @@ class MenuItemCard extends StatelessWidget {
   final String restaurantPlaceId;
   final bool isOpened;
 
+  Future<void> _showClearCartDialog({
+    required BuildContext context,
+    required MenuItem menuItem,
+    required String placeId,
+  }) {
+    return context.confirmAction(
+      fn: () async {
+        void addItem() => context.read<CartBloc>()
+          ..add(const CartClearRequested())
+          ..add(
+            CartAddItemRequested(
+              item: menuItem,
+              restaurantPlaceId: placeId,
+            ),
+          );
+        await HapticFeedback.lightImpact();
+        addItem();
+      },
+      title: 'Clear cart',
+      content: 'Before adding new item you should clear you cart.',
+      yesText: 'Yes, clear',
+      noText: 'No, keep it',
+    );
+  }
+
   Future<void> _showRestaurantClosedDialog({
     required BuildContext context,
   }) =>
@@ -27,21 +54,46 @@ class MenuItemCard extends StatelessWidget {
   Future<void> _onAddItemTap({
     required BuildContext context,
     required MenuItem item,
+    required bool isFromSameRestaurant,
   }) async {
-    if(!isOpened) return _showRestaurantClosedDialog(context: context);
+    if (!isOpened) return _showRestaurantClosedDialog(context: context);
+    void addItem() => context.read<CartBloc>().add(
+          CartAddItemRequested(
+            item: item,
+            restaurantPlaceId: restaurantPlaceId,
+          ),
+        );
+
+    Future<void> showDialog() => _showClearCartDialog(
+          context: context,
+          menuItem: item,
+          placeId: restaurantPlaceId,
+        );
 
     await HapticFeedback.lightImpact();
+    if (!isFromSameRestaurant) return showDialog();
+
+    addItem();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isFromSameRestaurant = context.select(
+      (CartBloc bloc) =>
+          bloc.state.restaurant?.placeId == restaurantPlaceId ||
+          bloc.state.restaurant == null,
+    );
+    final isInCart = context.select(
+      (CartBloc bloc) => bloc.state.isInCart(item) && isFromSameRestaurant,
+    );
+
     return Tappable.faded(
       borderRadius: AppSpacing.xlg,
       backgroundColor: context.customReversedAdaptiveColor(
         dark: AppColors.background,
         light: AppColors.brightGrey,
       ),
-       onTap: () => context.showScrollableModal(
+      onTap: () => context.showScrollableModal(
         minChildSize: .6,
         maxChildSize: .85,
         initialChildSize: .85,
@@ -93,10 +145,14 @@ class MenuItemCard extends StatelessWidget {
               ],
             ),
             const Spacer(),
+            if (isInCart)
+              MenuItemQuantity(item: item)
+            else
               AddItemButton(
                 onAddItemTap: () => _onAddItemTap(
                   context: context,
                   item: item,
+                  isFromSameRestaurant: isFromSameRestaurant,
                 ),
               ),
           ],
@@ -105,6 +161,75 @@ class MenuItemCard extends StatelessWidget {
     );
   }
 }
+
+class MenuItemQuantity extends StatelessWidget {
+  const MenuItemQuantity({required this.item, super.key});
+
+  final MenuItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final canIncreaseItemQuantity = context
+        .select((CartBloc bloc) => bloc.state.canIncreaseItemQuantity(item));
+    final quantity =
+        context.select((CartBloc bloc) => bloc.state.quantity(item));
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: context.customReversedAdaptiveColor(
+          dark: AppColors.emphasizeDarkGrey,
+          light: AppColors.white,
+        ),
+        borderRadius: BorderRadius.circular(AppSpacing.lg),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            left: AppSpacing.md,
+            child: AppIcon.button(
+              withPadding: false,
+              onTap: () {
+                context.read<CartBloc>().add(
+                      CartItemDecreaseQuantityRequested(
+                        item: item,
+                      ),
+                    );
+              },
+              icon: LucideIcons.minus,
+            ),
+          ),
+          Text(
+            quantity.toString(),
+            style: context.bodyLarge,
+          ),
+          Positioned(
+            right: AppSpacing.md,
+            child: Opacity(
+              opacity: !canIncreaseItemQuantity ? .4 : 1,
+              child: AppIcon.button(
+                onTap: !canIncreaseItemQuantity
+                    ? null
+                    : () {
+                        context.read<CartBloc>().add(
+                              CartItemIncreaseQuantityRequested(
+                                item: item,
+                              ),
+                            );
+                      },
+                icon: LucideIcons.plus,
+                withPadding: false,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 
 class AddItemButton extends StatelessWidget {
   const AddItemButton({required this.onAddItemTap, super.key});

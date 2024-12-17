@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:bloc/bloc.dart';
+import 'package:app_ui/app_ui.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 
 class AppBlocObserver extends BlocObserver {
   @override
@@ -15,13 +17,23 @@ class AppBlocObserver extends BlocObserver {
   }
 }
 
-Future<void> bootstrap(FutureOr<Widget> Function(SharedPreferences) builder) async{
-  await runZonedGuarded(() async{
+Future<void> bootstrap(
+  FutureOr<Widget> Function(SharedPreferences) builder,
+  ) async{
+  await runZonedGuarded(
+    () async{
       WidgetsFlutterBinding.ensureInitialized();
+      SystemUiOverlayTheme.setPortraitOrientation();
 
       await Firebase.initializeApp();
 
       Bloc.observer = AppBlocObserver();
+
+       HydratedBloc.storage = await HydratedStorage.build(
+        storageDirectory: kIsWeb
+            ? HydratedStorage.webStorageDirectory
+            : await getTemporaryDirectory(),
+      );
       
       final sharedPreferences = await SharedPreferences.getInstance();
 

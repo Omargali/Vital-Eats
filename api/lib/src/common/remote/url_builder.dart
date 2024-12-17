@@ -3,6 +3,19 @@ class UrlBuilder {
 
   final String _baseUrl;
 
+  /// Build parse url for getting restaurant by place id
+  Uri getRestaurant({
+    required String id,
+    String? latitude,
+    String? longitude,
+  }) =>
+      Uri.parse('$_baseUrl/restaurants/$id').replace(
+        queryParameters: {
+          if (latitude != null) 'lat': latitude,
+          if (longitude != null) 'lng': longitude,
+        },
+      );
+
   Uri getRestaurants({
     required String latitude,
     required String longitude,

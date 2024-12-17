@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vital_eats_2/app/app.dart';
 import 'package:vital_eats_2/auth/view/auth_page.dart';
+import 'package:vital_eats_2/cart/cart.dart';
 import 'package:vital_eats_2/home/view/home_view.dart';
 import 'package:vital_eats_2/map/view/map_page.dart';
 import 'package:vital_eats_2/map/widgets/search_location_autocomplete.dart';
@@ -37,6 +38,12 @@ class AppRouter {
             path: AppRoutes.searchLocation.route,
             name: AppRoutes.searchLocation.name,
             builder: (context, state) => const SearchLocationAutoCompletePage(),
+          ),
+          GoRoute(
+            path: AppRoutes.cart.route,
+            name: AppRoutes.cart.name,
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const CartPage(),
           ),
           GoRoute(
             path: AppRoutes.profile.route,

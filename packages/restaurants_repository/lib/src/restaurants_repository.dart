@@ -60,6 +60,14 @@ class PopularSearchFailure extends RestaurantsException {
   const PopularSearchFailure(super.error);
 }
 
+/// {@template get_restaurant_failure}
+/// Thrown when fetching restaurant fails.
+/// {@endtemplate}
+class GetRestaurantFailure extends RestaurantsException {
+  /// {@macro get_restaurant_failure}
+  const GetRestaurantFailure(super.error);
+}
+
 /// {@template relevant_search_failure}
 /// Thrown when fetching relevant restaurants fails.
 /// {@endtemplate}
@@ -89,6 +97,20 @@ class RestaurantsRepository {
 
   final YandexEatsClient _apiClient;
   final RestaurantsStorage _storage;
+
+  Future<Restaurant?> getRestaurant({
+    required String id,
+    Location? location,
+  }) async {
+    try {
+      return _apiClient.getRestaurant(
+        id: id,
+        location: location,
+      );
+    } catch (error, stackTrace) {
+      Error.throwWithStackTrace(GetRestaurantFailure(error), stackTrace);
+    }
+  }
 
    Future<List<Restaurant>> getRestaurants({
     required Location location,

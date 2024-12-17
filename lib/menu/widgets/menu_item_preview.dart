@@ -2,7 +2,9 @@ import 'package:api/api.dart';
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vital_eats_2/cart/bloc/cart_bloc.dart';
 
 class MenuItemPreview extends StatelessWidget {
   const MenuItemPreview({
@@ -85,11 +87,59 @@ class _IncreaseDecreaseQuantityBottomAppBarState
         title: 'Restaurant closed',
         content: "You can't add items from closed restaurant.",
       );
+  
+  Future<void> _showClearCartDialog({
+    required String placeId,
+  }) {
+    return context.confirmAction(
+      fn: () async {
+        void addItem() => context.read<CartBloc>()
+          ..add(const CartClearRequested())
+          ..add(
+            CartAddItemRequested(
+              item: widget.item,
+              restaurantPlaceId: placeId,
+              amount: _quantity.value,
+            ),
+          );
+        await HapticFeedback.lightImpact();
+        addItem();
+      },
+      title: 'Clear cart',
+      content: 'Before adding new item you should clear you cart.',
+      yesText: 'Yes, clear',
+      noText: 'No, keep it',
+    );
+  }
 
-  Future<void> _onAddItemTap() async {
+  Future<void> _onAddItemTap({
+    required bool isFromSameRestaurant,
+    required bool hasItem,
+  }) async {
     if (!widget.isOpened) return _showRestaurantClosedDialog(context: context);
-    
+    void addItem() => context.read<CartBloc>().add(
+          CartAddItemRequested(
+            item: widget.item,
+            restaurantPlaceId: widget.restaurantPlaceId!,
+            amount: _quantity.value,
+          ),
+        );
+
+    void increaseItemQuantity() {
+      context.read<CartBloc>().add(
+            CartItemIncreaseQuantityRequested(
+              item: widget.item,
+              amount: _quantity.value,
+            ),
+          );
+    }
+
     await HapticFeedback.lightImpact();
+    if (widget.restaurantPlaceId != null && !isFromSameRestaurant) {
+      return _showClearCartDialog(placeId: widget.restaurantPlaceId!);
+    }
+    if (!hasItem && isFromSameRestaurant) return addItem();
+    return increaseItemQuantity();
   }
 
   @override
@@ -100,6 +150,14 @@ class _IncreaseDecreaseQuantityBottomAppBarState
 
   @override
   Widget build(BuildContext context) {
+     final isFromSameRestaurant = context.select(
+      (CartBloc bloc) =>
+          bloc.state.restaurant?.placeId == widget.restaurantPlaceId ||
+          bloc.state.restaurant == null,
+    );
+    final hasItem =
+        context.select((CartBloc bloc) => bloc.state.isInCart(widget.item));
+
     return AppBottomBar(
       children: [
         Row(
@@ -156,7 +214,10 @@ class _IncreaseDecreaseQuantityBottomAppBarState
                   child: ShadButton(
                     onPressed: () async {
                       void pushBack() => context.pop();
-                      await _onAddItemTap();
+                      await _onAddItemTap(
+                         isFromSameRestaurant: isFromSameRestaurant,
+                        hasItem: hasItem,
+                      );
                       pushBack();
                     },
                     child: const Text('Add'),

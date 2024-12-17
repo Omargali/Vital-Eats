@@ -44,6 +44,32 @@ class YandexEatsClient {
     urlBuilder: const UrlBuilder(baseUrl: 'http://10.0.2.2:8080/api/v1'),
 );
 
+  Future<Restaurant?> getRestaurant({
+    required String id,
+    Location? location,
+  }) async {
+    final uri = _urlBuilder.getRestaurant(
+      id: id,
+      latitude: location?.lat.toString(),
+      longitude: location?.lng.toString(),
+    );
+    final response = await _dio.httpClient.getUri<Map<String, dynamic>>(
+      uri,
+    );
+    final data = response.data;
+    if (data == null) return null;
+
+    if (!response.isOk) {
+      throw YandexEatsApiRequestFailure(
+        body: data,
+        statusCode: response.statusCode,
+      );
+    }
+
+    final restaurant = data['restaurant'] as Map<String, dynamic>;
+    return Restaurant.fromJson(restaurant);
+  }
+
   const YandexEatsClient._({
     required UrlBuilder urlBuilder,
     required AppDio dio,

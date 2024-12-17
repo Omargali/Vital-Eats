@@ -8,7 +8,6 @@ enum AppRoutes {
   search('/search'),
   menu('/menu'),
   searchLocation('/searchLocation'),
-  
   cart('/cart');
 
   const AppRoutes(this.route);

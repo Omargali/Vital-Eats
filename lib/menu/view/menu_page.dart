@@ -1,18 +1,22 @@
+import 'package:api/api.dart';
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter/material.dart' hide MenuController;
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:restaurants_repository/restaurants_repository.dart';
+import 'package:shared/shared.dart';
+import 'package:vital_eats_2/app/routes/app_routes.dart';
+import 'package:vital_eats_2/cart/bloc/cart_bloc.dart';
 import 'package:vital_eats_2/menu/menu.dart';
 
 class MenuPage extends StatelessWidget {
   const MenuPage({required this.props, super.key});
 
   final MenuProps props;
-  
+
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => MenuBloc(
         restaurant: props.restaurant,
@@ -45,7 +49,6 @@ class _MenuViewState extends State<MenuView> {
     super.dispose();
   }
 
-  
   @override
   Widget build(BuildContext context) {
     final menus = context.select((MenuBloc bloc) => bloc.state.menus);
@@ -55,13 +58,14 @@ class _MenuViewState extends State<MenuView> {
       length: menus.length,
       child: Builder(
         builder: (context) {
-          WidgetsBinding.instance.addPostFrameCallback((_){
+          WidgetsBinding.instance.addPostFrameCallback((_) {
             _bloc
-            ..init(menus)
-            ..tabController = DefaultTabController.of(context);
+              ..init(menus)
+              ..tabController = DefaultTabController.of(context);
           });
           return AppScaffold(
             top: false,
+            bottomNavigationBar: MenuBottomAppBar(restaurant: restaurant),
             body: CustomScrollView(
               controller: _bloc.scrollController,
               slivers: [
@@ -70,10 +74,10 @@ class _MenuViewState extends State<MenuView> {
                     _bloc.isScrolledNotifier,
                     _bloc.colorChangeNotifier,
                     _bloc.preferredSizedNotifier,
-                  ]), 
-                  builder: (context, _){
+                  ]),
+                  builder: (context, _) {
                     return SliverAppBar(
-                       titleSpacing: AppSpacing.xlg,
+                      titleSpacing: AppSpacing.xlg,
                       pinned: true,
                       expandedHeight: 300,
                       forceElevated: true,
@@ -150,8 +154,8 @@ class _MenuViewState extends State<MenuView> {
                     );
                   },
                 ),
-                if(menus.isNotEmpty) ...[
-                   ListenableBuilder(
+                if (menus.isNotEmpty) ...[
+                  ListenableBuilder(
                     listenable: _bloc,
                     builder: (context, _) {
                       if (_bloc.tabs.isEmpty) {
@@ -162,24 +166,176 @@ class _MenuViewState extends State<MenuView> {
                       return MenuTabBar(controller: _bloc);
                     },
                   ),
-                   ListenableBuilder(
+                  ListenableBuilder(
                     listenable: _bloc,
                     builder: (context, child) {
                       return MenuDiscounts(discounts: _bloc.discounts);
                     },
                   ),
-                  for(int i = 0; i < menus.map((e) => e.category).length; i++) ...[
+                  for (int i = 0;
+                      i < menus.map((e) => e.category).length;
+                      i++) ...[
                     MenuSectionHeader(
-                      categoryName: menus[i].category, 
+                      categoryName: menus[i].category,
                       categoryHeight: _bloc.categoryHeight,
                     ),
                     MenuSectionItems(menu: menus[i]),
                   ],
                 ],
               ],
-             ),
-            );
+            ),
+          );
         },
+      ),
+    );
+  }
+}
+
+class MenuBottomAppBar extends StatelessWidget {
+  const MenuBottomAppBar({required this.restaurant, super.key});
+
+  final Restaurant restaurant;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CartBloc, CartState>(
+      builder: (context, state) {
+        final cartEmpty = state.isCartEmpty;
+        final isFromSameRestaurant =
+            state.restaurant?.placeId == restaurant.placeId;
+
+        if (cartEmpty || !isFromSameRestaurant) {
+          return const SizedBox.shrink();
+        }
+
+        return const FadeAnimation(
+          intervalEnd: .2,
+          child: AppBottomBar(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(AppSpacing.xlg),
+              topRight: Radius.circular(AppSpacing.xlg),
+            ),
+            children: [
+              DeliveryInfoBox(),
+              SizedBox(height: AppSpacing.md),
+              OrderInfoButton(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class DeliveryInfoBox extends StatelessWidget {
+  const DeliveryInfoBox({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final cart = context.select((CartBloc bloc) => bloc.state);
+    final defaultDeliveryFee =
+        context.select((CartBloc bloc) => bloc.state.formattedDeliveryFee);
+
+    return Tappable(
+      onTap: () => context.pushNamed(AppRoutes.cart.name),
+      child: SizedBox(
+        width: double.infinity,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            const Positioned(
+              left: 0,
+              child: AppIcon(
+                icon: LucideIcons.carTaxiFront,
+                iconSize: AppSize.md,
+              ),
+            ),
+            if (cart.isDeliveryFree)
+              DiscountPrice(
+                defaultPrice: defaultDeliveryFee,
+                discountPrice: 0.currencyFormat(decimalDigits: 0),
+                forDeliveryFee: true,
+                hasDiscount: false,
+              )
+            else
+              Column(
+                children: [
+                  Text(
+                    'Delivery ${cart.formattedOrderDeliveryFee}',
+                    textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    'To Free delivery ${cart.sumLeftToFreeDelivery}',
+                    textAlign: TextAlign.center,
+                    style: context.bodyMedium?.apply(color: AppColors.green),
+                  ),
+                ],
+              ),
+            Positioned(
+              right: 0,
+              child: AppIcon(icon: Icons.adaptive.arrow_forward),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class OrderInfoButton extends StatelessWidget {
+  const OrderInfoButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final cart = context.select((CartBloc bloc) => bloc.state);
+    final restaurant = context.select((CartBloc bloc) => bloc.state.restaurant);
+
+    return Tappable.faded(
+      backgroundColor: AppColors.deepBlue,
+      borderRadius: AppSpacing.sm,
+      onTap: () => context.pushNamed(AppRoutes.cart.name),
+      child: SizedBox(
+        width: double.infinity,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Positioned(
+                left: 0,
+                child: LimitedBox(
+                  maxWidth: 120,
+                  child: Text(
+                    restaurant?.formattedDeliveryTime() ?? '',
+                    textAlign: TextAlign.center,
+                    style: context.bodyMedium
+                        ?.apply(color: context.theme.colorScheme.surface),
+                  ),
+                ),
+              ),
+              Text(
+                'Order',
+                style: context.bodyLarge
+                    ?.copyWith(color: context.theme.colorScheme.surface),
+              ),
+              Positioned(
+                right: 0,
+                child: Text(
+                  cart.formattedTotalDelivery(),
+                  style: context.bodyMedium?.apply(
+                    color: context.customReversedAdaptiveColor(
+                      dark: AppColors.emphasizeDarkGrey,
+                      light: AppColors.brightGrey,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

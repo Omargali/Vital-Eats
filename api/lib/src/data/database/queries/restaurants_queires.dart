@@ -1,6 +1,38 @@
 import 'package:api/api.dart';
 import 'package:stormberry/stormberry.dart';
 
+class FindRestaurantById extends Query<DbrestaurantView?, QueryParams> {
+  const FindRestaurantById();
+
+  @override
+  Future<DbrestaurantView?> apply(Session db, QueryParams params) async {
+    final queryable = DbrestaurantViewQueryable();
+    final tableName = queryable.tableAlias;
+    final hasLocation = (params.values?.containsKey('lat') ?? false) &&
+        (params.values?.containsKey('lng') ?? false);
+    final where = hasLocation
+        ? '''
+earth_distance(
+    ll_to_earth(@lat, @lng),
+    ll_to_earth(latitude, longitude)
+  ) <= 150000 AND place_id=@place_id '''
+        : 'place_id=@place_id';
+    final query = '''
+      SELECT * FROM "$tableName"
+      WHERE $where
+      LIMIT 1
+    ''';
+
+    final postgreSQLResult =
+        await db.execute(Sql.named(query), parameters: params.values);
+
+    final objects = postgreSQLResult
+        .map((row) => queryable.decode(TypedMap(row.toColumnMap())))
+        .toList();
+    return objects.firstOrNull;
+  }
+}
+
 class GetRestaurantsByLocation
     extends Query<List<DbrestaurantView>, QueryParams> {
   const GetRestaurantsByLocation();
